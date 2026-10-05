@@ -1,0 +1,5 @@
+// Reboot when an update needs it (kernel patches don't apply until then), at 09:00 UTC (4 AM Central).
+// Containers come back on their own (restart: unless-stopped).
+Unattended-Upgrade::Automatic-Reboot "true";
+Unattended-Upgrade::Automatic-Reboot-Time "09:00";
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";

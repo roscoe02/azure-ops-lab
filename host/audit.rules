@@ -1,0 +1,10 @@
+# Record changes to accounts, sudo rights, SSH config, and Docker config
+-w /etc/passwd -p wa -k identity
+-w /etc/shadow -p wa -k identity
+-w /etc/group -p wa -k identity
+-w /etc/sudoers -p wa -k sudoers
+-w /etc/sudoers.d/ -p wa -k sudoers
+-w /etc/ssh/sshd_config -p wa -k sshd
+-w /etc/ssh/sshd_config.d/ -p wa -k sshd
+-w /etc/docker/ -p wa -k docker
+-w /opt/status/stack/ -p wa -k stack

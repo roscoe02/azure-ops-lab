@@ -1,16 +1,31 @@
 # Public status page: Caddy (HTTPS, automatic Let's Encrypt certificate) in front of Gatus.
+# Both containers: read-only filesystem, no Linux capabilities beyond what they need,
+# no privilege escalation, and capped logs, memory, and process counts.
+x-hardening: &hardening
+  restart: unless-stopped
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  pids_limit: 200
+  tmpfs: [/tmp]
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "3" }
+
 services:
   gatus:
+    <<: *hardening
     image: twinproduction/gatus:v5.37.0
-    restart: unless-stopped
+    user: "1000:1000"   # not root; owns /opt/status/gatus-data
     volumes:
       - ./gatus/config.yaml:/config/config.yaml:ro
       - /opt/status/gatus-data:/data
     mem_limit: 256m
 
   caddy:
+    <<: *hardening
     image: caddy:2.11.6-alpine
-    restart: unless-stopped
+    cap_add: [NET_BIND_SERVICE]   # only to listen on 80/443
     depends_on: [gatus]
     ports:
       - "80:80"

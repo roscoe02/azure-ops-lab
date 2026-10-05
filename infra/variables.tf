@@ -26,9 +26,22 @@ variable "ssh_public_key_path" {
   default     = "~/.ssh/opslab_ed25519.pub"
 }
 
+variable "enable_public_ssh" {
+  description = "Open SSH to admin_cidr from the internet. Off by default: admin access is over Tailscale. Turn on only to bootstrap a rebuilt VM (scripts/allow-my-ip.sh)."
+  type        = bool
+  default     = false
+}
+
 variable "admin_cidr" {
-  description = "Public IP allowed to SSH in, as a /32 (your home IP). Update and re-apply if it changes."
+  description = "Public IP allowed to SSH in when enable_public_ssh is true, as a /32"
   type        = string
+  default     = "203.0.113.10/32"
+}
+
+variable "tailnet_hostname" {
+  description = "The VM's name on my tailnet (MagicDNS)"
+  type        = string
+  default     = "opslab"
 }
 
 variable "vm_size" {

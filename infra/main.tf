@@ -30,23 +30,27 @@ resource "azurerm_subnet" "web" {
   address_prefixes     = ["10.20.1.0/24"]
 }
 
-# Firewall: SSH only from my IP; HTTP/HTTPS open for the status page; everything else denied by default
+# Firewall: HTTP/HTTPS open for the status page; everything else denied by default
 resource "azurerm_network_security_group" "web" {
   name                = "nsg-${var.prefix}-web"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   tags                = local.tags
 
-  security_rule {
-    name                       = "allow-ssh-admin"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "22"
-    source_address_prefix      = var.admin_cidr
-    destination_address_prefix = "*"
+  # Public SSH exists only while enable_public_ssh is true; normally SSH is reachable only over Tailscale
+  dynamic "security_rule" {
+    for_each = var.enable_public_ssh ? [1] : []
+    content {
+      name                       = "allow-ssh-admin"
+      priority                   = 100
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_range          = "*"
+      destination_port_range     = "22"
+      source_address_prefix      = var.admin_cidr
+      destination_address_prefix = "*"
+    }
   }
 
   security_rule {
