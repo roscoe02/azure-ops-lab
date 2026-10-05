@@ -1,0 +1,53 @@
+# What the status page checks. Every check is defined here, in git.
+storage:
+  type: sqlite
+  path: /data/data.db
+
+ui:
+  title: "Ethan Roscoe | Service Status"
+  header: "Service status"
+  description: "Uptime for my portfolio, AI agent, and projects. Runs on an Azure VM built with Terraform."
+  link: "https://roscoe02.github.io"
+
+endpoints:
+  - name: Portfolio site
+    group: Portfolio
+    url: "https://roscoe02.github.io/"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+      - "[RESPONSE_TIME] < 2000"
+
+  - name: Skills radar data
+    group: Portfolio
+    url: "https://roscoe02.github.io/data/radar.json"
+    interval: 15m
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY].postings_analyzed > 0"
+
+  # CORS preflight only: proves the Worker is up without calling the Claude API (no cost per check)
+  - name: AI agent (Cloudflare Worker)
+    group: Portfolio
+    url: "https://ask-ethan.agent7.workers.dev"
+    method: OPTIONS
+    headers:
+      Origin: "https://roscoe02.github.io"
+      Access-Control-Request-Method: "POST"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 204"
+
+  - name: AD home lab repo
+    group: GitHub
+    url: "https://github.com/roscoe02/ad-homelab"
+    interval: 30m
+    conditions:
+      - "[STATUS] == 200"
+
+  - name: Network scanner repo
+    group: GitHub
+    url: "https://github.com/roscoe02/network-scanner"
+    interval: 30m
+    conditions:
+      - "[STATUS] == 200"

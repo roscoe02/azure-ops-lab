@@ -1,0 +1,48 @@
+#cloud-config
+# First-boot setup: patches, hardening, Docker, and azcopy. The status stack itself is
+# deployed separately by scripts/deploy.sh, so config changes never require rebuilding the VM.
+package_update: true
+package_upgrade: true
+packages:
+  - docker.io
+  - docker-compose-v2
+  - ufw
+  - fail2ban
+  - unattended-upgrades
+  - sqlite3
+
+write_files:
+  - path: /etc/opslab.env
+    permissions: "0644"
+    content: |
+      STORAGE_ACCOUNT=${storage_account}
+      SITE_ADDRESS=${site_address}
+  - path: /etc/ssh/sshd_config.d/99-hardening.conf
+    content: |
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      PermitRootLogin no
+      MaxAuthTries 3
+  - path: /etc/fail2ban/jail.d/sshd.local
+    content: |
+      [sshd]
+      enabled = true
+      maxretry = 5
+      findtime = 10m
+      bantime = 1h
+  - path: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+
+runcmd:
+  # 1 GB swap: the free VM size has only 1 GB of RAM
+  - fallocate -l 1G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile && echo '/swapfile none swap sw 0 0' >> /etc/fstab
+  # Host firewall in addition to the Azure NSG (defense in depth)
+  - ufw default deny incoming && ufw default allow outgoing && ufw allow 22/tcp && ufw allow 80/tcp && ufw allow 443/tcp && ufw --force enable
+  - systemctl restart ssh
+  - systemctl enable --now docker fail2ban
+  - usermod -aG docker ${admin_username}
+  - mkdir -p /opt/status/stack /opt/status/gatus-data && chown -R ${admin_username}:${admin_username} /opt/status
+  # azcopy, for backups to Blob Storage with the VM's managed identity
+  - curl -sSL https://aka.ms/downloadazcopy-v10-linux -o /tmp/azcopy.tgz && tar -xzf /tmp/azcopy.tgz -C /tmp && install -m 755 /tmp/azcopy_linux_amd64_*/azcopy /usr/local/bin/azcopy

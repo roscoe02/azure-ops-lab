@@ -1,0 +1,10 @@
+# Terraform state can contain resource keys: local only, never commit
+*.tfstate
+*.tfstate.*
+.terraform/
+*.tfvars
+!example.tfvars
+crash.log
+# SSH keys
+*.pem
+id_*

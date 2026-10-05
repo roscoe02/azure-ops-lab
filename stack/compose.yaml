@@ -1,0 +1,27 @@
+# Public status page: Caddy (HTTPS, automatic Let's Encrypt certificate) in front of Gatus.
+services:
+  gatus:
+    image: twinproduction/gatus:v5.37.0
+    restart: unless-stopped
+    volumes:
+      - ./gatus/config.yaml:/config/config.yaml:ro
+      - /opt/status/gatus-data:/data
+    mem_limit: 256m
+
+  caddy:
+    image: caddy:2.11.6-alpine
+    restart: unless-stopped
+    depends_on: [gatus]
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file: /etc/opslab.env
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    mem_limit: 128m
+
+volumes:
+  caddy-data:
+  caddy-config:
