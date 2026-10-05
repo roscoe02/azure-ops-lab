@@ -1,6 +1,6 @@
 # Azure Ops Lab
 
-An always-on Linux server in Azure, built entirely with Terraform and run the way a small IT team would run it: locked-down network, no passwords, no stored keys, monitoring, alerts, a budget, and tested backups. It hosts a public status page that watches my portfolio and projects.
+An always-on Linux server in Azure, built entirely with Terraform. It has a locked-down network, no passwords or stored keys, monitoring and alerts, a budget, and tested backups, and it hosts a public status page for my portfolio and projects.
 
 **Live:** [status.ethanroscoe.com](https://status.ethanroscoe.com)
 
