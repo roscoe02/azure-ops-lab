@@ -7,12 +7,12 @@ ui:
   title: "Ethan Roscoe | Service Status"
   header: "Service status"
   description: "Uptime for my portfolio, AI agent, and projects. Runs on an Azure VM built with Terraform."
-  link: "https://roscoe02.github.io"
+  link: "https://ethanroscoe.com"
 
 endpoints:
   - name: Portfolio site
     group: Portfolio
-    url: "https://roscoe02.github.io/"
+    url: "https://ethanroscoe.com/"
     interval: 5m
     conditions:
       - "[STATUS] == 200"
@@ -20,7 +20,7 @@ endpoints:
 
   - name: Skills radar data
     group: Portfolio
-    url: "https://roscoe02.github.io/data/radar.json"
+    url: "https://ethanroscoe.com/data/radar.json"
     interval: 15m
     conditions:
       - "[STATUS] == 200"
@@ -29,10 +29,10 @@ endpoints:
   # CORS preflight only: proves the Worker is up without calling the Claude API (no cost per check)
   - name: AI agent (Cloudflare Worker)
     group: Portfolio
-    url: "https://ask-ethan.agent7.workers.dev"
+    url: "https://ask.ethanroscoe.com"
     method: OPTIONS
     headers:
-      Origin: "https://roscoe02.github.io"
+      Origin: "https://ethanroscoe.com"
       Access-Control-Request-Method: "POST"
     interval: 5m
     conditions:

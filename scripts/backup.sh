@@ -2,7 +2,7 @@
 # Nightly: snapshot the Gatus database and upload it to Blob Storage.
 # Authenticates with the VM's managed identity, so there are no keys on disk.
 set -euo pipefail
-source /etc/opslab.env
+STORAGE_ACCOUNT=$(grep -m1 "^STORAGE_ACCOUNT=" /etc/opslab.env | cut -d= -f2)
 stamp=$(date -u +%Y%m%dT%H%M%SZ)
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT

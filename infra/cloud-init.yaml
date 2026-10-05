@@ -45,4 +45,4 @@ runcmd:
   - usermod -aG docker ${admin_username}
   - mkdir -p /opt/status/stack /opt/status/gatus-data && chown -R ${admin_username}:${admin_username} /opt/status
   # azcopy, for backups to Blob Storage with the VM's managed identity
-  - curl -sSL https://aka.ms/downloadazcopy-v10-linux -o /tmp/azcopy.tgz && tar -xzf /tmp/azcopy.tgz -C /tmp && install -m 755 /tmp/azcopy_linux_amd64_*/azcopy /usr/local/bin/azcopy
+  - curl -sSL https://aka.ms/downloadazcopy-v10-linux-arm64 -o /tmp/azcopy.tgz && tar -xzf /tmp/azcopy.tgz -C /tmp && install -m 755 /tmp/azcopy_linux_*/azcopy /usr/local/bin/azcopy

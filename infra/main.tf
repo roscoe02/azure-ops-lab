@@ -99,8 +99,8 @@ resource "azurerm_linux_virtual_machine" "vm" {
   admin_username                  = var.admin_username
   disable_password_authentication = true
   network_interface_ids           = [azurerm_network_interface.vm.id]
-  secure_boot_enabled             = true # Trusted Launch
-  vtpm_enabled                    = true
+  secure_boot_enabled             = var.trusted_launch
+  vtpm_enabled                    = var.trusted_launch
   custom_data = base64encode(templatefile("${path.module}/cloud-init.yaml", {
     admin_username  = var.admin_username
     storage_account = azurerm_storage_account.backups.name
@@ -123,7 +123,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "ubuntu-24_04-lts"
-    sku       = "server"
+    sku       = "server-arm64" # B2pts_v2 is an Arm64 size
     version   = "latest"
   }
 

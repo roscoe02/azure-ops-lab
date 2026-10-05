@@ -8,3 +8,7 @@ crash.log
 # SSH keys
 *.pem
 id_*
+
+# Saved plans contain variable values (subscription ID, IP, email)
+tfplan
+*.tfplan
