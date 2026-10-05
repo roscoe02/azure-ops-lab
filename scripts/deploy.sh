@@ -16,11 +16,12 @@ SSH_OPTS=(-i ~/.ssh/opslab_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyCheckin
 
 rsync -az --delete -e "ssh ${SSH_OPTS[*]}" host/ "$HOST:/tmp/host/"
 rsync -az --delete -e "ssh ${SSH_OPTS[*]}" stack/ "$HOST:/opt/status/stack/"
-scp -q "${SSH_OPTS[@]}" scripts/backup.sh scripts/opslab-backup.service scripts/opslab-backup.timer "$HOST:/tmp/"
+scp -q "${SSH_OPTS[@]}" scripts/backup.sh scripts/restore-check.sh scripts/opslab-backup.service scripts/opslab-backup.timer "$HOST:/tmp/"
 ssh "${SSH_OPTS[@]}" "$HOST" "sudo sed -i 's|^SITE_ADDRESS=.*|SITE_ADDRESS=$SITE_ADDRESS|' /etc/opslab.env"
 ssh "${SSH_OPTS[@]}" "$HOST" 'set -e
   sudo /tmp/host/apply.sh "${SSH_CONNECTION%% *}"
   sudo install -m 755 /tmp/backup.sh /usr/local/bin/opslab-backup
+  sudo install -m 755 /tmp/restore-check.sh /usr/local/bin/opslab-restore-check
   sudo install -m 644 /tmp/opslab-backup.service /tmp/opslab-backup.timer /etc/systemd/system/
   sudo systemctl daemon-reload
   sudo systemctl enable --now opslab-backup.timer

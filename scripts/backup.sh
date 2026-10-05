@@ -9,5 +9,7 @@ trap 'rm -rf "$tmp"' EXIT
 sqlite3 /opt/status/gatus-data/data.db ".backup '$tmp/data.db'"   # consistent copy while Gatus runs
 tar -czf "$tmp/gatus-$stamp.tar.gz" -C "$tmp" data.db
 export AZCOPY_AUTO_LOGIN_TYPE=MSI
-azcopy copy "$tmp/gatus-$stamp.tar.gz" "https://$STORAGE_ACCOUNT.blob.core.windows.net/backups/gatus-$stamp.tar.gz" --log-level ERROR
+# azcopy logs its expected first unauthenticated attempt (401) before signing in; logging off, exit code kept
+azcopy copy "$tmp/gatus-$stamp.tar.gz" "https://$STORAGE_ACCOUNT.blob.core.windows.net/backups/gatus-$stamp.tar.gz" --log-level NONE >/dev/null \
+  || { echo "upload of gatus-$stamp.tar.gz failed"; exit 1; }
 echo "backup uploaded: gatus-$stamp.tar.gz"

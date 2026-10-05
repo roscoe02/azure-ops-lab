@@ -1,8 +1,9 @@
 [Unit]
-Description=Back up the status page database to Azure Blob Storage
+Description=Back up the status page database to Azure Blob Storage, then test-restore the newest backup
 Wants=network-online.target
 After=network-online.target
 
 [Service]
 Type=oneshot
 ExecStart=/usr/local/bin/opslab-backup
+ExecStart=/usr/local/bin/opslab-restore-check

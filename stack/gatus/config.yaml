@@ -51,3 +51,12 @@ endpoints:
     interval: 30m
     conditions:
       - "[STATUS] == 200"
+
+# Pushed by scripts/restore-check.sh after each nightly backup. Goes red on a failed restore,
+# or if no result arrives within 26 hours (the job didn't run).
+external-endpoints:
+  - name: Nightly restore test
+    group: Backups
+    token: "${GATUS_PUSH_TOKEN}"
+    heartbeat:
+      interval: 26h

@@ -1,6 +1,6 @@
 # Azure Ops Lab
 
-An always-on Linux server in Azure, built entirely with Terraform. It has no SSH port open to the internet (admin access is over Tailscale), no passwords or stored keys, hardened containers, monitoring and alerts, a budget, and nightly backups, and it hosts a public status page for my portfolio and projects.
+An always-on Linux server in Azure, built entirely with Terraform. It has no SSH port open to the internet (admin access is over Tailscale), no passwords or stored keys, hardened containers, monitoring and alerts, a budget, and nightly backups that are test-restored automatically, and it hosts a public status page for my portfolio and projects.
 
 **Live:** [status.ethanroscoe.com](https://status.ethanroscoe.com)
 
@@ -13,7 +13,7 @@ An always-on Linux server in Azure, built entirely with Terraform. It has no SSH
 | **Admin access** | SSH over Tailscale only; port 22 is closed to the internet |
 | **Hardening** | Lynis hardening index 66 → 77 after the host and container changes below |
 | **Monitoring** | Gatus checks every 5–30 min · Azure Monitor alerts by email · $10/month budget alert |
-| **Backups** | Nightly to Azure Blob Storage with the VM's managed identity (no keys), kept 30 days |
+| **Backups** | Nightly to Azure Blob Storage with the VM's managed identity (no keys), kept 30 days, soft delete on · every backup is test-restored and the result shows on the status page |
 
 ## Architecture
 
@@ -34,7 +34,8 @@ flowchart LR
     budget[Budget alert<br/>$10/month]
   end
 
-  timer -->|managed identity| storage
+  timer -->|managed identity<br/>backup + test restore| storage
+  timer -->|restore result| gatus
   monitor -->|email| me
   budget -->|email| me
   gatus -->|checks| sites[ethanroscoe.com<br/>ask.ethanroscoe.com<br/>GitHub repos]
@@ -58,7 +59,9 @@ I measured it with [Lynis](https://cisofy.com/lynis/): 66 before, 77 after. I le
 
 **Status page.** [Gatus](https://github.com/TwiN/gatus) checks my portfolio, the skills-radar data, my AI agent, and my project repos, and every check is defined in [`stack/gatus/config.yaml`](stack/gatus/config.yaml). The AI agent check sends only a CORS preflight, so it proves the Cloudflare Worker is up without calling the Claude API (no cost per check). Caddy sits in front and gets and renews certificates automatically. Both containers run with a read-only filesystem, all Linux capabilities dropped (Caddy gets back only the one for binding ports 80/443), no privilege escalation, and limits on memory, processes, and log size. Gatus runs as a regular user, not root. Only Caddy publishes ports, which matters because Docker's published ports skip `ufw`.
 
-**Backups.** A systemd timer takes a consistent SQLite snapshot of the status history every night and uploads it with azcopy. The VM authenticates with its **system-assigned managed identity**, which has the *Storage Blob Data Contributor* role on that one storage account and nothing else. Shared-key access is disabled on the account, so there are no storage keys to leak. A lifecycle rule deletes backups after 30 days.
+**Backups.** A systemd timer takes a consistent SQLite snapshot of the status history every night and uploads it with azcopy. The VM authenticates with its **system-assigned managed identity**, which has the *Storage Blob Data Contributor* role on that one storage account and nothing else. Shared-key access is disabled on the account, so there are no storage keys to leak. A lifecycle rule deletes backups after 30 days, and soft delete keeps anything deleted recoverable for 7 more.
+
+Right after each backup, [`scripts/restore-check.sh`](scripts/restore-check.sh) downloads the newest backup from storage, not the local copy, restores it to a scratch folder, and checks that it's under 26 hours old, passes SQLite's integrity check, and contains check results. It reports the result to the status page as **Backups: Nightly restore test**. That check also turns red if no result arrives within 26 hours, so a backup job that silently stops running gets caught too. I tested the failure path by pointing it at an empty container, and the status page went red with the error message.
 
 **Monitoring and cost.** Azure Monitor emails me if the VM becomes unavailable or CPU stays above 90% for 15 minutes. A subscription budget emails me at 50% and 90% of $10 and if the forecast passes 100%.
 
@@ -83,7 +86,7 @@ cd infra && terraform apply               # closes public SSH again
 | Tailscale is down, need SSH | `./scripts/allow-my-ip.sh`, then `terraform apply` to close it again |
 | Re-run the security audit | `ssh opslab 'sudo lynis audit system --quick'` |
 | Change a status check | Edit `stack/gatus/config.yaml`, then `./scripts/deploy.sh` |
-| Run a backup now | `ssh opslab 'sudo systemctl start opslab-backup'` |
+| Run a backup and restore test now | `ssh opslab 'sudo systemctl start opslab-backup'` |
 | List backups | `az storage blob list --account-name <account> -c backups --auth-mode login -o table` |
 | Tear it all down | `terraform destroy` (everything is reproducible from this repo) |
 

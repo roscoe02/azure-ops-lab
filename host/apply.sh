@@ -11,7 +11,7 @@ if ! command -v tailscale >/dev/null; then
   curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list -o /etc/apt/sources.list.d/tailscale.list
   apt-get update -qq
 fi
-DEBIAN_FRONTEND=noninteractive apt-get install -y -qq tailscale auditd debsums apt-show-versions libpam-tmpdir lynis >/dev/null
+DEBIAN_FRONTEND=noninteractive apt-get install -y -qq tailscale auditd debsums apt-show-versions libpam-tmpdir lynis jq >/dev/null
 systemctl enable --now tailscaled auditd >/dev/null
 
 install -m 644 sshd-hardening.conf /etc/ssh/sshd_config.d/99-hardening.conf
@@ -32,6 +32,10 @@ CONF
 
 install -m 640 audit.rules /etc/audit/rules.d/opslab.rules
 augenrules --load >/dev/null
+
+# Token the restore check uses to report to the status page; generated here, never in git
+grep -q '^GATUS_PUSH_TOKEN=' /etc/opslab.env || echo "GATUS_PUSH_TOKEN=$(openssl rand -hex 24)" >> /etc/opslab.env
+chown root:docker /etc/opslab.env && chmod 640 /etc/opslab.env
 
 # Gatus runs as uid 1000 (not root) in its container
 chown -R 1000:1000 /opt/status/gatus-data

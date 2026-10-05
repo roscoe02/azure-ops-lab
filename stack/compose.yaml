@@ -17,6 +17,7 @@ services:
     <<: *hardening
     image: twinproduction/gatus:v5.37.0
     user: "1000:1000"   # not root; owns /opt/status/gatus-data
+    env_file: /etc/opslab.env   # GATUS_PUSH_TOKEN for the restore-test check
     volumes:
       - ./gatus/config.yaml:/config/config.yaml:ro
       - /opt/status/gatus-data:/data
