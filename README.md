@@ -71,15 +71,6 @@ cd .. && ./scripts/deploy.sh              # pushes the status stack and backup j
 | List backups | `az storage blob list --account-name <account> -c backups --auth-mode login -o table` |
 | Tear it all down | `terraform destroy` (everything is reproducible from this repo) |
 
-## Problems I hit and how I solved them
-
-- **Region policy.** Azure for Students only allows five regions, and South Central US (closest to Dallas) isn't one. `az policy assignment list` showed the allowed list, and I moved to Central US.
-- **VM size availability.** The x86 free size wasn't offered in Central US; `az vm list-skus` showed the Arm64 `B2pts_v2` was, so I switched to the Arm64 Ubuntu image and Arm64 azcopy build.
-- **Trusted Launch.** Azure rejected Trusted Launch (Secure Boot + vTPM) for that Arm64 size. I made it a variable and turned it off for this VM.
-- **Rotating campus IP.** My public IP on the university network changed mid-session, which locked me out of SSH (by design). I wrote `allow-my-ip.sh` to update the rule in one command. A private-network VPN like Tailscale is the long-term fix.
-- **An env file with a space in it.** Adding a second hostname for Caddy broke the backup script's `source /etc/opslab.env`. I caught it by running the backup manually right after deploying, and changed the script to read only the one value it needs.
-- **Terraform's default provider registration.** It tried to register dozens of Azure resource providers and failed on an unrelated one. I limited it to the five this project uses.
-
 ## What I'd add next
 
 - Tailscale for admin access, then close port 22 to the internet entirely.
