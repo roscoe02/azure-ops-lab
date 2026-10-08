@@ -96,3 +96,7 @@ cd infra && terraform apply               # closes public SSH again
 - Wazuh security monitoring for this VM and the lab.
 - Remote Terraform state in Azure Storage with state locking.
 - Port the same Terraform layout to AWS.
+
+## Credits
+
+Made with the help of [Claude Code](https://claude.com/claude-code), Anthropic's AI coding agent.
