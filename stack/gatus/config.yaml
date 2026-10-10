@@ -38,6 +38,21 @@ endpoints:
     conditions:
       - "[STATUS] == 204"
 
+  - name: Syllabase app
+    group: Syllabase
+    url: "https://syllabase-app.vercel.app/"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+      - "[RESPONSE_TIME] < 3000"
+
+  - name: Syllabase repo
+    group: GitHub
+    url: "https://github.com/roscoe02/Syllabase"
+    interval: 30m
+    conditions:
+      - "[STATUS] == 200"
+
   - name: AD home lab repo
     group: GitHub
     url: "https://github.com/roscoe02/ad-homelab"
